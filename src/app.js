@@ -26,7 +26,7 @@ try {
 }
 
 app.post("/sing-up", async (req, res) => {
-    const user = req.body; //nome, email, senha, confirmeSenha
+    const user = req.body;
     const passwordHash = bcrypt.hashSync(user.senha, 10);
     const userSchema = joi.object({
         nome: joi.string().required(),
@@ -41,23 +41,29 @@ app.post("/sing-up", async (req, res) => {
     }
     try {
         const userExists = await db.colection('users').findOne({ email: user.email })
-        if (userExists) return res.status(400).send("Email já cadastrado")
+        if (!userExists) return res.status(400).send("Email já cadastrado")
 
         await db.colection('users').insertOne({ ...user, senha: passwordHash })
-    } catch(err) {
+    } catch (err) {
         res.status(500).send(err.message)
     }
 })
 
-{/*app.post("/sign-in", async (req, res) => {
-    const user = res.body; // email, senha
+app.post("/sign-in", async (req, res) => {
+    const { email, senha } = res.body; // email, senha
     await db.colection('users').insertOne(user)
-    const emailExist = await db.colection('users').findOne({ email: user.email })
-    if (emailExist && bcrypt.compareSync()) {
-
-    } else {
-
+    const user = await db.colection('users').findOne({ email });
+    if (!user) return res.status(400).send("Usuário ou senha inválidos")
+    try {
+        if (user && bcrypt.compareSync(senha, user.senha)) {
+            return res.sendStatus(201);
+        } else {
+            return res.status(400).send("Usuário ou senha inválidos")
+        }
+    } catch (err) {
+        return res.sendStatus(500).send(err.message)
     }
-})*/}
+
+})
 
 app.listen(PORT, () => console.log('tudo certo, nada errado'));

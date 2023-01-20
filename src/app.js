@@ -56,7 +56,13 @@ app.post("/sign-in", async (req, res) => {
     if (!user) return res.status(400).send("Usuário ou senha inválidos")
     try {
         if (user && bcrypt.compareSync(senha, user.senha)) {
-            return res.sendStatus(201);
+            const token = uuidV4();
+            await db.collection('sessions').insertOne({
+                userId: user._id,
+                token
+            })
+            delete user.senha
+            return res.sendStatus(201).send(user);
         } else {
             return res.status(400).send("Usuário ou senha inválidos")
         }
@@ -87,11 +93,25 @@ app.post("/registers", async (req, res) => {
         return res.sendStatus(500).send(err.message)
     }
 })
-
 app.get("/registers", async (req, res) => {
     const registers = await db.collection('registers').find().toArray()
+    const {authorization} = req.headers;
+    const token = authorization?.replace('Bearer ', '');
+
     try {
-        res.send(registers)
+        if(!token) return res.sendStatus(401);
+
+        const session = await db.collection("sessions").findOne({token});
+        if(!session) return res.sendStatus(401)
+
+        const user = await db.collection("users").findOne({
+            _id:session.userId
+        })
+        if(user){
+            res.send(registers)
+        }else{
+            res.sendStatus(401)
+        }  
     } catch (err) {
         res.status(500).send(err.message)
     }

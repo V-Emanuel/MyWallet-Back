@@ -31,7 +31,7 @@ app.post("/sing-up", async (req, res) => {
     const userSchema = joi.object({
         nome: joi.string().required(),
         email: joi.string().email().required(),
-        senha: joi.string().required(),
+        senha: joi.string().min(8).required(),
         confirmeSenha: joi.ref(senha)
     })
     const validation = userSchema.validate(messages, { abortEarly: true });
@@ -40,19 +40,19 @@ app.post("/sing-up", async (req, res) => {
         return res.status(422).send(errors)
     }
     try {
-        const userExists = await db.colection('users').findOne({ email: user.email })
+        const userExists = await db.collection('users').findOne({ email: user.email })
         if (!userExists) return res.status(400).send("Email já cadastrado")
 
-        await db.colection('users').insertOne({ ...user, senha: passwordHash })
+        await db.collection('users').insertOne({ ...user, senha: passwordHash })
     } catch (err) {
-        res.status(500).send(err.message)
+        return res.sendStatus(500).send(err.message)
     }
 })
 
 app.post("/sign-in", async (req, res) => {
     const { email, senha } = res.body; // email, senha
-    await db.colection('users').insertOne(user)
-    const user = await db.colection('users').findOne({ email });
+    await db.collection('users').insertOne(user)
+    const user = await db.collection('users').findOne({ email });
     if (!user) return res.status(400).send("Usuário ou senha inválidos")
     try {
         if (user && bcrypt.compareSync(senha, user.senha)) {
@@ -65,5 +65,37 @@ app.post("/sign-in", async (req, res) => {
     }
 
 })
+
+app.post("/registers", async (req, res) => {
+    const register = req.body;
+    const registerSchema = joi.object({
+        value: joi.number().required(),
+        description: joi.string.required(),
+        type: joi.string.valid("input", "output").required()
+    });
+    const validation = registerSchema.validate(register, { abortEarly: true });
+    if (validation.error) {
+        const errors = validation.error.details.map((detail) => detail.message);
+        return res.status(422).send(errors);
+    }
+    try {
+
+        await db.collection("messages").insertOne(register)
+        return res.sendStatus(201)
+
+    } catch (err) {
+        return res.sendStatus(500).send(err.message)
+    }
+})
+
+app.get("/registers", async (req, res) => {
+    const registers = await db.collection('registers').find().toArray()
+    try {
+        res.send(registers)
+    } catch (err) {
+        res.status(500).send(err.message)
+    }
+})
+
 
 app.listen(PORT, () => console.log('tudo certo, nada errado'));

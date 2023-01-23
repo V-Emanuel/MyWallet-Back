@@ -1,5 +1,5 @@
 
-import db from "../config/database"
+import db from "../config/database.js"
 
 export async function authValidation(req, res, next){
     const { authorization } = req.headers;
@@ -9,7 +9,7 @@ export async function authValidation(req, res, next){
     try{
         const session = await db.collection("sessions").findOne({ token });
         if (!session) return res.sendStatus(401)
-        return res.locals.sessao = session;
+        res.locals.sessions = session;
     }catch(err){
         res.status(500).send(err)
     }

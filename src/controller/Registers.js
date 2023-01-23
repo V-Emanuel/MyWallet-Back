@@ -1,4 +1,4 @@
-import { registerSchema } from "../schema/RegistersSchema";
+import { registerSchema } from "../schema/RegistersSchema.js";
 import db from '../config/database.js';
 
 export async function postRegisters(req, res) {

@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
-import authRouter from "./routes/authRoutes"
-import registersRouter from  "./routes/registersRoutes"
+import authRouter from "./routes/authRoutes.js"
+import registersRouter from  "./routes/registersRoutes.js"
 
 const PORT = 5034;
 const app = express();
@@ -10,4 +10,4 @@ app.use(express.json());
 
 app.use([authRouter, registersRouter]);
 
-app.listen(PORT, () => console.log('tudo certo, nada errado'));
+app.listen(PORT, () => console.log('Tudo certo'));

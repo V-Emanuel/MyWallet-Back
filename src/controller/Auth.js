@@ -25,9 +25,14 @@ export async function signUp(req, res) {
     }
 
 }
-export async function signIn(res, res) {
+export async function signIn(req, res) {
     const { email, senha } = res.body;
     const userExist = await db.collection('users').findOne({ email });
+    const validation = userSchema.validate({email, senha}, { abortEarly: true });
+    if (validation.error) {
+        const errors = validation.error.details.map((detail) => detail.message);
+        return res.status(422).send(errors)
+    }
     if (!userExist) return res.status(400).send("Usuário ou senha inválidos")
     try {
         if (userExist && bcrypt.compareSync(senha, user.senha)) {

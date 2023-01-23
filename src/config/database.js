@@ -11,3 +11,5 @@ try {
     console.log(err)
     console.log('Deu errado')
 }
+
+export default db
